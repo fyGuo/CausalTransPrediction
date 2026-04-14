@@ -1,0 +1,155 @@
+\section*{Simulation: Data-Generating Process and Estimators}
+
+%% ─────────────────────────────────────────────────────────────────────────
+\subsection*{Data-Generating Process}
+
+The simulated data consist of $n = 5{,}000$ i.i.d.\ observations
+$O_i = (X_{1i}, X_{2i}, S_i, L_i, A_i, Y_i)$.
+Covariates and the cohort indicator are drawn for every unit;
+confounders, treatment, and outcome are observed only for cohort members
+($S_i = 1$).
+
+\paragraph{Covariates.}
+\begin{align}
+  X_1,\; X_2 \;\overset{\text{i.i.d.}}{\sim}\; \mathcal{N}(0,1).
+\end{align}
+
+\paragraph{Cohort indicator.}
+\begin{align}
+  S \mid X_1, X_2 \;\sim\; \operatorname{Bernoulli}\!\bigl(
+    \operatorname{expit}(-0.5 + 0.4\,X_1 + 0.4\,X_2)\bigr).
+\end{align}
+$S = 0$ denotes the target population; $S = 1$ denotes the external cohort.
+Because $L \perp S \mid (X_1, X_2)$ and $\varepsilon_Y \perp S \mid
+(X_1, X_2)$, the transportability assumption~(A4) holds.
+
+\paragraph{Confounder (cohort only).}
+\begin{align}
+  L \;=\; 0.5\,X_1 + 0.5\,X_2 + \varepsilon_L, \qquad
+  \varepsilon_L \sim \mathcal{N}(0,1).
+\end{align}
+$L$ is observed for $S = 1$ and set to \texttt{NaN} for $S = 0$.
+
+\paragraph{Treatment (cohort only).}
+\begin{align}
+  A \mid X_1, L, S=1 \;\sim\; \operatorname{Bernoulli}\!\bigl(
+    \operatorname{expit}(-1 + 0.5\,X_1 + L)\bigr).
+\end{align}
+
+\paragraph{Outcome (cohort only).}
+\begin{align}
+  Y \;=\; 1 + 0.5\,X_1 + 0.3\,X_2 + 0.8\,L + 1.5\,A + \varepsilon_Y,
+  \qquad \varepsilon_Y \sim \mathcal{N}(0,1).
+\end{align}
+The true counterfactual outcome under no treatment is
+\begin{align}
+  Y^0 \;=\; 1 + 0.5\,X_1 + 0.3\,X_2 + 0.8\,L + \varepsilon_Y.
+\end{align}
+
+\paragraph{Risk predictors.}
+$P = (X_1, X_2) \subset X$. The linear risk model
+$\mathbb{E}(Y^0 \mid P,\, S=0) = \beta_0 + \beta_1 X_1 + \beta_2 X_2$
+is correctly specified with true parameter
+\begin{align}
+  \beta^* = (\beta_0^*, \beta_1^*, \beta_2^*) = (1.0,\; 0.9,\; 0.7).
+\end{align}
+(The marginalisation $\psi^*(X_1,X_2) = \mathbb{E}\{m^*(X,L)\mid X,S=1\}
+= 1 + 0.9\,X_1 + 0.7\,X_2$ follows from linearity and
+$\mathbb{E}(L \mid X_1, X_2) = 0.5\,X_1 + 0.5\,X_2$.)
+
+%% ─────────────────────────────────────────────────────────────────────────
+\subsection*{True Nuisance Functions}
+
+\begin{align}
+  m^*(X_1, X_2, L)
+    &\;=\; \mathbb{E}(Y \mid A=0, X, L, S=1)
+     \;=\; 1 + 0.5\,X_1 + 0.3\,X_2 + 0.8\,L, \\[4pt]
+  \pi^*(X_1, L)
+    &\;=\; \Pr(A=1 \mid X, L, S=1)
+     \;=\; \operatorname{expit}(-1 + 0.5\,X_1 + L), \\[4pt]
+  \psi^*(X_1, X_2)
+    &\;=\; \mathbb{E}\{m^*(X,L) \mid X, S=1\}
+     \;=\; 1 + 0.9\,X_1 + 0.7\,X_2, \\[4pt]
+  \rho_1^*(X_1, X_2)
+    &\;=\; \Pr(S=1 \mid X_1, X_2)
+     \;=\; \operatorname{expit}(-0.5 + 0.4\,X_1 + 0.4\,X_2), \\[4pt]
+  \rho_0^*(X_1, X_2)
+    &\;=\; 1 - \rho_1^*(X_1, X_2).
+\end{align}
+
+%% ─────────────────────────────────────────────────────────────────────────
+\subsection*{Plug-In Estimator}
+
+The three-step plug-in estimator operates as follows.
+
+\begin{enumerate}
+  \item \textbf{Outcome model.}
+    Fit a linear regression for $\mathbb{E}(Y \mid A=0, X, L, S=1)$
+    on the $A=0$ cohort sub-sample, yielding $\hat{m}(X, L)$.
+    Under correct specification the features are $(X_1, X_2, L)$;
+    under misspecification ($m$ wrong) only $(X_1, X_2)$ are used.
+
+  \item \textbf{Marginalise over $L$.}
+    Predict $\hat{m}(X_j, L_j)$ for every cohort member $j$,
+    then regress these predictions on $X$ within the cohort to obtain
+    $\hat{\psi}(X)$.
+    Under correct specification the features are $(X_1, X_2)$;
+    under misspecification ($\psi$ wrong) only $X_2$ is used.
+
+  \item \textbf{Regress on risk predictors.}
+    Predict $\hat{\psi}(X_i)$ for each target-population member $i$,
+    then regress on $P_i = (X_{1i}, X_{2i})$ to obtain
+    $\hat{\beta} = (\hat\beta_0, \hat\beta_1, \hat\beta_2)$.
+\end{enumerate}
+
+%% ─────────────────────────────────────────────────────────────────────────
+\subsection*{Doubly-Robust (DR) Estimator}
+
+$\hat\beta_{\mathrm{DR}}$ solves $\mathbb{P}_n\,\phi_\beta(O_i) = 0$,
+which in closed form gives
+\begin{align}
+  \hat\beta_{\mathrm{DR}}
+  \;=\;
+  \Bigl(\sum_{i:\,S_i=0} D_i D_i^\top\Bigr)^{-1}
+  \sum_{i=1}^n
+  \Bigl[
+    (1-S_i)\,\hat\psi(X_i)
+    \;+\;
+    S_i\,\frac{\hat\rho_0(X_i)}{\hat\rho_1(X_i)}\,\widehat{\mathrm{AIPW}}_i
+  \Bigr] D_i,
+\end{align}
+where $D_i = (1, X_{1i}, X_{2i})^\top$,
+\begin{align}
+  \widehat{\mathrm{AIPW}}_i
+  \;=\;
+  \frac{1-A_i}{1-\hat\pi(X_i,L_i)}\,\bigl(Y_i - \hat m(X_i,L_i)\bigr)
+  + \hat m(X_i,L_i) - \hat\psi(X_i),
+\end{align}
+and the four nuisance models are fitted as follows.
+
+\begin{center}
+\begin{tabular}{lll}
+  \hline
+  \textbf{Nuisance} & \textbf{Correct specification} & \textbf{Misspecification} \\
+  \hline
+  $m$      & Linear regression on $(X_1, X_2, L)$, $A=0$ cohort
+           & Features $(X_1, X_2)$ only (omit $L$) \\
+  $\pi$    & Logistic regression on $(X_1, L)$, cohort
+           & Feature $X_1$ only (omit $L$) \\
+  $\psi$   & Linear regression on $(X_1, X_2)$, cohort
+           & Feature $X_2$ only (omit $X_1$) \\
+  $\rho_1$ & Logistic regression on $(X_1, X_2)$, full sample
+           & Feature $X_1$ only (omit $X_2$) \\
+  \hline
+\end{tabular}
+\end{center}
+
+%% ─────────────────────────────────────────────────────────────────────────
+\subsection*{Monte Carlo Design}
+
+All $2^4 = 16$ combinations of correct/misspecified $(m, \pi, \psi, \rho)$
+are evaluated with $N_{\mathrm{sim}} = 500$ replications at
+$n = 2{,}000$ per replication ($\approx 1{,}150$ cohort and $\approx 850$
+target-population observations on average).
+Performance is measured by bias and root mean squared error (RMSE)
+for $\hat\beta_1$ and $\hat\beta_2$.
