@@ -13,7 +13,9 @@
       "Bash(git commit -m ':*)",
       "Bash(git remote:*)",
       "Bash(git branch:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "mcp__ide__executeCode",
+      "Bash(jupyter kernelspec *)"
     ]
   }
 }
