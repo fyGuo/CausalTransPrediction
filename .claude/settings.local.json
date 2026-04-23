@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(jupyter nbconvert:*)",
+      "Bash(/Users/fuyuguo/anaconda3/bin/python:*)",
+      "Bash(/Users/fuyuguo/anaconda3/bin/jupyter kernelspec:*)",
+      "Bash(/Users/fuyuguo/anaconda3/bin/jupyter nbconvert:*)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(tee /dev/stderr)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git remote:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}
